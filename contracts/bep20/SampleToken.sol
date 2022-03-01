@@ -11,6 +11,7 @@ contract SampleToken is IERC20 {
 
     constructor() {
         _balances[msg.sender] = 1000000;
+        _totalSupply = 1000000;
     }
 
     function totalSupply() public view override returns (uint256) {

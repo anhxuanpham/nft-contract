@@ -11,46 +11,59 @@ describe("ERC20-BEP20", function () {
         const Token = await ethers.getContractFactory("SampleToken");
         token = await Token.deploy()
         await token.deployed()
-
     })
-    describe("common()", function (){
+    describe("common()", function () {
         it("total supply should return right value", async function () {
-            
+            expect(await token.totalSupply()).to.be.equal(totalSupply)
         });
         it("balance of account A should return right value", async function () {
-            
+            expect(await token.balanceOf(accountA.address)).to.be.equal(totalSupply)
         });
         it("balance of account B should return right value", async function () {
-            
+            expect(await token.balanceOf(accountB.address)).to.be.equal(0)
         });
         it("allowance of account A should return right value", async function () {
-            
+            expect(await token.allowance(accountA.address, accountB.address)).to.be.equal(0)
         });
 
     })
-    describe("transfer()", function (){
+    describe("transfer()", function () {
         it("transfer should revert if amount exceeds balance", async function () {
-            
+            await expect(token.transfer(accountB.address, totalSupply + 1)).to.be.revertedWith("ERC20: transfer amount exceeds balance")
         });
         it("transfer should work correctly", async function () {
-
+            let transferTx = await token.transfer(accountB.address, amount)
+            expect(await token.balanceOf(accountA.address)).to.be.equal(totalSupply - amount)
+            expect(await token.balanceOf(accountB.address)).to.be.equal(amount)
+            await expect(transferTx).to.emit(token, 'Transfer').withArgs(accountA.address, accountB.address, amount)
         });
 
     })
-    describe("transferFrom()", function (){
+    describe("transferFrom()", function () {
         it("transferFrom should revert if amount exceeds allowance balance", async function () {
-            
+            await token.approve(accountB.address, amount);
+            expect(await token.allowance(accountA.address, accountB.address)).to.be.equal(amount)
+            await expect(token.transferFrom(accountA.address, accountB.address, amount)).to.be.revertedWith("ERC20: transfer amount exceeds balance")
         });
         it("transferFrom should work correctly", async function () {
-
+            let approveTx = await token.approve(accountC.address, amount);
+            await expect(approveTx).to.emit(token, 'Approval').withArgs(accountA.address, accountC.address, amount);
+            expect(await token.allowance(accountA.address, accountC.address)).to.be.equal(amount)
+            let transferFromTx = await token.connect(accountC).transferFrom(accountA.address, accountB.address, amount)
+            expect(await token.balanceOf(accountA.address)).to.be.equal(totalSupply - amount)
+            expect(await token.balanceOf(accountB.address)).to.be.equal(amount)
+            await expect(transferFromTx).to.emit(token, 'Transfer').withArgs(accountA.address, accountB.address, amount)
         });
     })
-    describe("approve()", function (){
+    describe("approve()", function () {
         it("approve should revert if spender is address 0", async function () {
-            
+            await token.approve(accountC.address, amount);
+            expect(await token.allowance(accountA.address, accountC.address)).to.be.equal(amount)
         });
-        it("approve should work correctly", async function () {
-          
+        it("transferFrom should work correctly", async function () {
+            let approveTx = await token.approve(accountC.address, amount);
+            await expect(approveTx).to.emit(token, 'Approval').withArgs(accountA.address, accountC.address, amount);
+            expect(await token.allowance(accountA.address, accountC.address)).to.be.equal(amount)
         });
     })
 });
