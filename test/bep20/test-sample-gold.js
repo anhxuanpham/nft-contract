@@ -5,6 +5,7 @@ describe("ERC20-BEP20", function () {
     let [accountA, accountB, accountC] = []
     let token
     let amount = 100
+    let address0 = "0x0000000000000000000000000000000000000000"
     let totalSupply = 1000000
     beforeEach(async () => {
         [accountA, accountB, accountC] = await ethers.getSigners();
@@ -12,7 +13,7 @@ describe("ERC20-BEP20", function () {
         token = await Token.deploy()
         await token.deployed()
     })
-    describe("common()", function () {
+    describe("common", function () {
         it("total supply should return right value", async function () {
             expect(await token.totalSupply()).to.be.equal(totalSupply)
         });
@@ -43,7 +44,7 @@ describe("ERC20-BEP20", function () {
         it("transferFrom should revert if amount exceeds allowance balance", async function () {
             await token.approve(accountB.address, amount);
             expect(await token.allowance(accountA.address, accountB.address)).to.be.equal(amount)
-            await expect(token.transferFrom(accountA.address, accountB.address, amount)).to.be.revertedWith("ERC20: transfer amount exceeds balance")
+            await expect(token.transferFrom(accountA.address, accountB.address, amount+1)).to.be.revertedWith("ERC20: transfer amount exceeds balance")
         });
         it("transferFrom should work correctly", async function () {
             let approveTx = await token.approve(accountC.address, amount);
@@ -57,10 +58,9 @@ describe("ERC20-BEP20", function () {
     })
     describe("approve()", function () {
         it("approve should revert if spender is address 0", async function () {
-            await token.approve(accountC.address, amount);
-            expect(await token.allowance(accountA.address, accountC.address)).to.be.equal(amount)
+            await expect(token.approve(address0, amount)).to.be.revertedWith("ERC20: approve to the zero address")
         });
-        it("transferFrom should work correctly", async function () {
+        it("approve should work correctly", async function () {
             let approveTx = await token.approve(accountC.address, amount);
             await expect(approveTx).to.emit(token, 'Approval').withArgs(accountA.address, accountC.address, amount);
             expect(await token.allowance(accountA.address, accountC.address)).to.be.equal(amount)
