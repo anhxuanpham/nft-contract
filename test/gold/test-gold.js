@@ -59,4 +59,42 @@ describe("GOLD", function () {
             await expect(transferTx).to.emit(token, 'Transfer').withArgs(accountA.address, accountB.address, amount)
         });
     })
+    describe("addToBlacklist()", function () {
+        it("should revert in case add sender to blacklist", async function () {
+            await expect(token.addToBlacklist(accountA.address)).to.be.revertedWith("Gold: must not add sender to blacklist")
+        });
+        it("should revert if account has been added to blacklist", async function () {
+            await token.addToBlacklist(accountB.address)
+            await expect(token.addToBlacklist(accountB.address)).to.be.revertedWith("Gold: account was on blacklist")
+        });
+        it("should revert if not admin role", async function () {
+            await expect(token.connect(accountB.address).addToBlacklist(accountC.address)).to.be.reverted
+        });
+        it("should add To BlackList correctly", async function () {
+            token.transfer(accountB.address, amount)
+            token.transfer(accountC.address, amount)
+            await token.addToBlacklist(accountB.address)
+            await expect(token.connect(accountB).transfer(accountC.address, amount)).to.be.revertedWith("Gold: account sender was on blacklist")
+            await expect(token.connect(accountC).transfer(accountB.address, amount)).to.be.revertedWith("Gold: account recipient was on blacklist")
+        });
+    })
+    describe("removeFromBlacklist()", function () {
+        beforeEach(async () => {
+            token.transfer(accountB.address, amount)
+            token.transfer(accountC.address, amount)
+            await token.addToBlacklist(accountB.address)
+        })
+        it("should revert if account has not been added to blacklist", async function () {
+            await token.removeFromBlacklist(accountB.address)
+            await expect(token.removeFromBlacklist(accountB.address)).to.be.revertedWith("Gold: account was not on blacklist")
+        });
+        it("should revert if not admin role", async function () {
+            await expect(token.connect(accountB.address).removeFromBlacklist(accountC.address)).to.be.reverted
+        });
+        it("should remove from BlackList correctly", async function () {
+            await token.removeFromBlacklist(accountB.address)
+            let transferTx = await token.transfer(accountB.address, amount)
+            await expect(transferTx).to.emit(token, 'Transfer').withArgs(accountA.address, accountB.address, amount)
+        });
+    })
 });
