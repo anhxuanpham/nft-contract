@@ -43,7 +43,7 @@ contract SampleToken is IERC20 {
         uint256 amount
     ) public override returns (bool) {
         require(
-            _balances[msg.sender] >= amount,
+            _balances[sender] >= amount,
             "ERC20: transfer amount exceeds balance"
         );
         require(
