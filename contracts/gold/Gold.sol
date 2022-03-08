@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 contract Gold is ERC20, Pausable, AccessControl {
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
     event BlacklistAdded(address account);
+    event BlacklistRemoved(address account);
     mapping(address => bool) private _blackList;
 
     constructor() ERC20("GOLD", "GLD") {
@@ -31,7 +32,7 @@ contract Gold is ERC20, Pausable, AccessControl {
     {
         require(_blackList[_account] == true, "Gold: account was not on blacklist");
         _blackList[_account] = false;
-        emit BlacklistAdded(_account);
+        emit BlacklistRemoved(_account);
     }
 
     function pause() public onlyRole(PAUSER_ROLE) {
