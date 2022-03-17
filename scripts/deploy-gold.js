@@ -18,15 +18,6 @@ async function main() {
   const gold = await Gold.deploy()
   await gold.deployed()
   console.log("gold deployed to:", gold.address);
-
-  const TokenSale = await ethers.getContractFactory("TokenSale")
-  const tokenSale = await TokenSale.deploy(gold.address)
-  await tokenSale.deployed()
-  console.log("tokenSale deployed to:", tokenSale.address);
-
-  const transferTx = await gold.transfer(tokenSale.address, ethers.utils.parseUnits("10000", "ether"))
-  await transferTx.wait()
-
 }
 
 // We recommend this pattern to be able to use async/await everywhere

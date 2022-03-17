@@ -25,6 +25,7 @@ contract TokenSale {
             token.balanceOf(address(this)) > amountToken,
             "TokenSale: exceeds hard cap"
         );
+        contributions[msg.sender] += amountToken;
         token.transfer(msg.sender, amountToken);
     }
 }
