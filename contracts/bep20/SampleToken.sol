@@ -52,6 +52,7 @@ contract SampleToken is IERC20 {
         );
         _balances[sender] -= amount;
         _balances[recipient] += amount;
+        _allowances[sender][msg.sender] -= amount;
         emit Transfer(sender, recipient, amount);
         return true;
     }
