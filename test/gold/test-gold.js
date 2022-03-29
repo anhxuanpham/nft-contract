@@ -71,8 +71,8 @@ describe("GOLD", function () {
             await expect(token.connect(accountB.address).addToBlacklist(accountC.address)).to.be.reverted
         });
         it("should add To BlackList correctly", async function () {
-            token.transfer(accountB.address, amount)
-            token.transfer(accountC.address, amount)
+            await token.transfer(accountB.address, amount)
+            await token.transfer(accountC.address, amount)
             await token.addToBlacklist(accountB.address)
             await expect(token.connect(accountB).transfer(accountC.address, amount)).to.be.revertedWith("Gold: account sender was on blacklist")
             await expect(token.connect(accountC).transfer(accountB.address, amount)).to.be.revertedWith("Gold: account recipient was on blacklist")
@@ -80,8 +80,8 @@ describe("GOLD", function () {
     })
     describe("removeFromBlacklist()", function () {
         beforeEach(async () => {
-            token.transfer(accountB.address, amount)
-            token.transfer(accountC.address, amount)
+            await token.transfer(accountB.address, amount)
+            await token.transfer(accountC.address, amount)
             await token.addToBlacklist(accountB.address)
         })
         it("should revert if account has not been added to blacklist", async function () {
