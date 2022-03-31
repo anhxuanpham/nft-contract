@@ -20,13 +20,13 @@ describe("marketplace", function () {
         gold = await Gold.deploy()
         await gold.deployed()
         const Marketplace = await ethers.getContractFactory("Marketplace");
-        marketplace = await Marketplace.deploy(petty.address, defaulFeeDecimal, defaulFeeRate, feeRecipient)
-        await gold.deployed()
+        marketplace = await Marketplace.deploy(petty.address, defaulFeeDecimal, defaulFeeRate, feeRecipient.address)
+        await marketplace.deployed()
+        await marketplace.addPaymentToken(gold.address)
     })
     describe("common", function () {
-        it("nft contract should return correct value", async function () {
-        });
         it("feeDecimal should return correct value", async function () {
+            expect(await marketplace.feeDecimal()).to.be.equal(defaulFeeDecimal)
         });
         it("feeRate should return correct value", async function () {
         });
@@ -61,6 +61,11 @@ describe("marketplace", function () {
             petty.mint(seller.address)
         })
         it("should revert if payment token not supported", async function () {
+            await expect(marketplace.connect(seller)
+                .addOrder(1, seller.address, defaulPrice))
+                .to
+                .be
+                .revertedWith("NFTMarketplace: unsupport payment token")
         });
         it("should revert if sender isn't nft owner", async function () {
         });
@@ -74,10 +79,10 @@ describe("marketplace", function () {
     describe("cancelOrder", function () {
         beforeEach(async () => {
             petty.mint(seller.address)
-            petty.setApprovalForAll(marketplace.address, true)
-            marketplace.addOrder(1, gold.address, defaulPrice)
+            petty.connect(seller).setApprovalForAll(marketplace.address, true)
+            marketplace.connect(seller).addOrder(1, gold.address, defaulPrice)
         })
-        it("should revert if order has been sell", async function () {
+        it("should revert if order has been sold", async function () {
         });
         it("should revert if sender isn't order owner", async function () {
         });
@@ -87,8 +92,8 @@ describe("marketplace", function () {
     describe("executeOrder", function () {
         beforeEach(async () => {
             petty.mint(seller.address)
-            petty.setApprovalForAll(marketplace.address, true)
-            marketplace.addOrder(1, gold.address, defaulPrice)
+            petty.connect(seller).setApprovalForAll(marketplace.address, true)
+            marketplace.connect(seller).addOrder(1, gold.address, defaulPrice)
         })
         it("should revert if sender is seller", async function () {
         });
