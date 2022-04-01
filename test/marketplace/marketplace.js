@@ -2,17 +2,18 @@ const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
 describe("marketplace", function () {
-    let [admin, seller, buyer, feeRecipient] = []
+    let [admin, seller, buyer, feeRecipient, samplePaymentToken] = []
     let petty
     let gold
     let marketplace
     let defaulFeeRate = 10
     let defaulFeeDecimal = 0
     let defaulPrice = ethers.utils.parseEther("100")
+    let defaulBalance = ethers.utils.parseEther("10000")
     let address0 = "0x0000000000000000000000000000000000000000"
     let uri = "sampleuri.com/"
     beforeEach(async () => {
-        [admin, seller, buyer, feeRecipient] = await ethers.getSigners();
+        [admin, seller, buyer, feeRecipient, samplePaymentToken] = await ethers.getSigners();
         const Petty = await ethers.getContractFactory("Petty");
         petty = await Petty.deploy()
         await petty.deployed()
@@ -23,6 +24,8 @@ describe("marketplace", function () {
         marketplace = await Marketplace.deploy(petty.address, defaulFeeDecimal, defaulFeeRate, feeRecipient.address)
         await marketplace.deployed()
         await marketplace.addPaymentToken(gold.address)
+        await gold.transfer(seller.address, defaulBalance)
+        await gold.transfer(buyer.address, defaulBalance)
     })
     describe("common", function () {
         it("feeDecimal should return correct value", async function () {
@@ -54,7 +57,7 @@ describe("marketplace", function () {
         });
         it("should revert if address is already supported", async function () {
         });
-        it("should revert if sender is not contract owner", async function () {
+        it("should revert if sender is not owner", async function () {
         });
         it("should add payment token correctly", async function () {
         });
@@ -62,7 +65,7 @@ describe("marketplace", function () {
     //important
     describe("addOrder", function () {
         beforeEach(async () => {
-            petty.mint(seller.address)
+            await petty.mint(seller.address)
         })
         it("should revert if payment token not supported", async function () {
         });
@@ -77,9 +80,9 @@ describe("marketplace", function () {
     })
     describe("cancelOrder", function () {
         beforeEach(async () => {
-            petty.mint(seller.address)
-            petty.connect(seller).setApprovalForAll(marketplace.address, true)
-            marketplace.connect(seller).addOrder(1, gold.address, defaulPrice)
+            await petty.mint(seller.address)
+            await petty.connect(seller).setApprovalForAll(marketplace.address, true)
+            await marketplace.connect(seller).addOrder(1, gold.address, defaulPrice)
         })
         it("should revert if order has been sold", async function () {
         });
@@ -90,21 +93,24 @@ describe("marketplace", function () {
     })
     describe("executeOrder", function () {
         beforeEach(async () => {
-            petty.mint(seller.address)
-            petty.connect(seller).setApprovalForAll(marketplace.address, true)
-            marketplace.connect(seller).addOrder(1, gold.address, defaulPrice)
+            await petty.mint(seller.address)
+            await petty.connect(seller).setApprovalForAll(marketplace.address, true)
+            await marketplace.connect(seller).addOrder(1, gold.address, defaulPrice)
+            await gold.connect(buyer).approve(marketplace.address, defaulPrice)
         })
         it("should revert if sender is seller", async function () {
         });
         it("should revert if order has been sold", async function () {
         });
+        it("should revert if order has been cancel", async function () {
+        });
         it("should execute order correctly with default fee", async function () {
         });
         it("should execute order correctly with 0 fee", async function () {
         });
-        it("should execute order correctly with fee 1", async function () {
+        it("should execute order correctly with fee 1 = 99%", async function () {
         });
-        it("should execute order correctly with fee 2", async function () {
+        it("should execute order correctly with fee 2 = 10.11111%", async function () {
         });
     })
 })

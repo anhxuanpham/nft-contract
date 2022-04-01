@@ -181,15 +181,16 @@ contract Marketplace is Ownable {
     }
 
     function executeOrder(uint256 orderId_) external {
+        Order storage _order = orders[orderId_];
+        require(_order.price > 0, "NFTMarketplace: order has been canceled");
         require(
             !isSeller(orderId_, _msgSender()),
             "NFTMarketplace: buyer must be different from seller"
         );
         require(
-            orders[orderId_].buyer == address(0),
+            _order.buyer == address(0),
             "NFTMarketplace: buyer must be zero"
         );
-        Order storage _order = orders[orderId_];
         _order.buyer = _msgSender();
         uint256 _feeAmount = _calculateFee(orderId_);
         if (_feeAmount > 0) {
