@@ -26,7 +26,6 @@ describe("marketplace", function () {
     })
     describe("common", function () {
         it("feeDecimal should return correct value", async function () {
-            expect(await marketplace.feeDecimal()).to.be.equal(defaulFeeDecimal)
         });
         it("feeRate should return correct value", async function () {
         });
@@ -36,10 +35,15 @@ describe("marketplace", function () {
     describe("updateFeeRecipient", function () {
         it("should revert if feeRecipient is address 0", async function () {
         });
+        it("should revert if sender isn't contract owner", async function () {
+        });
         it("should update correctly", async function () {
         });
     })
+
     describe("updateFeeRate", function () {
+        it("should revert if fee rate >= 10^(feeDecimal+2)", async function () {
+        });
         it("should revert if fee rate >= 10^(feeDecimal+2)", async function () {
         });
         it("should update correctly", async function () {
@@ -50,7 +54,7 @@ describe("marketplace", function () {
         });
         it("should revert if address is already supported", async function () {
         });
-        it("should revert if address is already supported", async function () {
+        it("should revert if sender is not contract owner", async function () {
         });
         it("should add payment token correctly", async function () {
         });
@@ -61,11 +65,6 @@ describe("marketplace", function () {
             petty.mint(seller.address)
         })
         it("should revert if payment token not supported", async function () {
-            await expect(marketplace.connect(seller)
-                .addOrder(1, seller.address, defaulPrice))
-                .to
-                .be
-                .revertedWith("NFTMarketplace: unsupport payment token")
         });
         it("should revert if sender isn't nft owner", async function () {
         });
