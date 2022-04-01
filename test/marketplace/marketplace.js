@@ -11,7 +11,6 @@ describe("marketplace", function () {
     let defaulPrice = ethers.utils.parseEther("100")
     let defaulBalance = ethers.utils.parseEther("10000")
     let address0 = "0x0000000000000000000000000000000000000000"
-    let uri = "sampleuri.com/"
     beforeEach(async () => {
         [admin, seller, buyer, feeRecipient, samplePaymentToken] = await ethers.getSigners();
         const Petty = await ethers.getContractFactory("Petty");
@@ -47,7 +46,7 @@ describe("marketplace", function () {
     describe("updateFeeRate", function () {
         it("should revert if fee rate >= 10^(feeDecimal+2)", async function () {
         });
-        it("should revert if fee rate >= 10^(feeDecimal+2)", async function () {
+        it("should revert if sender isn't contract owner", async function () {
         });
         it("should update correctly", async function () {
         });
@@ -57,7 +56,7 @@ describe("marketplace", function () {
         });
         it("should revert if address is already supported", async function () {
         });
-        it("should revert if sender is not owner", async function () {
+        it("should revert if sender is not contract owner", async function () {
         });
         it("should add payment token correctly", async function () {
         });
