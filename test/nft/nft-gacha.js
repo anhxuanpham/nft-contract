@@ -10,7 +10,7 @@ describe("Petty NFT", function () {
     let priceGacha1 = ethers.utils.parseEther("100")
     let priceGacha2 = ethers.utils.parseEther("200")
     let priceGacha3 = ethers.utils.parseEther("300")
-
+    let oneDay = 86400
     beforeEach(async () => {
         [accountA, accountB, accountC] = await ethers.getSigners();
         const Gold = await ethers.getContractFactory("Gold");
@@ -100,20 +100,124 @@ describe("Petty NFT", function () {
             await expect(pettyGacha.breedPetties(1, 2))
                 .to.be.revertedWith("PettyGacha: The contract is unauthorized to manage this token")
         });
-        it("should breed correctly", async function () {
+        it("should breed correctly rank 1", async function () {
             await pettyGacha.setApprovalForAll(pettyGacha.address, true)
             await pettyGacha.openGacha(4, priceGacha1)
             await pettyGacha.openGacha(4, priceGacha1)
             await pettyGacha.breedPetties(1, 2)
-            await expect(pettyGacha.ownerOf(1)).to.be.revertedWith("ERC721: owner query for nonexistent token")
-            await expect(pettyGacha.ownerOf(2)).to.be.revertedWith("ERC721: owner query for nonexistent token")
-            expect(await pettyGacha.ownerOf(3)).to.be.equal(accountA.address)
-            const petty1 = await pettyGacha._tokenIdToPetty(1)
-            const petty2 = await pettyGacha._tokenIdToPetty(2)
+            await expect(pettyGacha.ownerOf(1))
+            .to
+            .be.revertedWith("ERC721: owner query for nonexistent token")
+            await expect(pettyGacha.ownerOf(2))
+            .to
+            .be.revertedWith("ERC721: owner query for nonexistent token")
+            const blockNum = await ethers.provider.getBlockNumber();
+            const block = await ethers.provider.getBlock(blockNum);
+            
+            let breedInfo = await pettyGacha._idToBreedInfo(1)
+            expect(breedInfo.startTime).to.be.equal(await block.timestamp)
+            expect(breedInfo.breedTime).to.be.equal(oneDay)
+            expect(breedInfo.owner).to.be.equal(accountA.address)
+            expect(breedInfo.matron).to.be.equal(1)
+            expect(breedInfo.sire).to.be.equal(2)
+            expect(breedInfo.newRank).to.be.equal(2)
+            // expect(await pettyGacha.ownerOf(3)).to.be.equal(accountA.address)
+            // const petty1 = await pettyGacha._tokenIdToPetty(1)
+            // const petty2 = await pettyGacha._tokenIdToPetty(2)
+            // const petty3 = await pettyGacha._tokenIdToPetty(3)
+            // expect(petty1.rank).to.be.equal(0)
+            // expect(petty2.rank).to.be.equal(0)
+            // expect(petty3.rank).to.be.equal(2)
+        })
+        it("should breed correctly rank 2", async function () {
+            await pettyGacha.setApprovalForAll(pettyGacha.address, true)
+            await pettyGacha.openGacha(5, priceGacha1)
+            await pettyGacha.openGacha(5, priceGacha1)
+            await pettyGacha.breedPetties(1, 2)
+            await expect(pettyGacha.ownerOf(1))
+            .to
+            .be.revertedWith("ERC721: owner query for nonexistent token")
+            const blockNum = await ethers.provider.getBlockNumber();
+            const block = await ethers.provider.getBlock(blockNum);
+            await expect(pettyGacha.ownerOf(2))
+            .to
+            .be.revertedWith("ERC721: owner query for nonexistent token")
+            let breedInfo = await pettyGacha._idToBreedInfo(1)
+            expect(breedInfo.startTime).to.be.equal(await block.timestamp)
+            expect(breedInfo.breedTime).to.be.equal(oneDay*2)
+            expect(breedInfo.owner).to.be.equal(accountA.address)
+            expect(breedInfo.matron).to.be.equal(1)
+            expect(breedInfo.sire).to.be.equal(2)
+            expect(breedInfo.newRank).to.be.equal(3)          
+        })
+    })
+    describe("claimsPetty", function () {
+        it("should revert if not owner", async function () {
+            await pettyGacha.setApprovalForAll(pettyGacha.address, true)
+            await pettyGacha.openGacha(4, priceGacha1)
+            await pettyGacha.openGacha(4, priceGacha1)
+            await pettyGacha.breedPetties(1, 2)
+            await expect(pettyGacha.connect(accountB).claimsPetty(1))
+            .to
+            .be
+            .revertedWith("PettyGacha: sender is not breed owner")
+        })
+        it("should revert if not exceed claim time rank 1", async function () {
+            await pettyGacha.setApprovalForAll(pettyGacha.address, true)
+            await pettyGacha.openGacha(4, priceGacha1)
+            await pettyGacha.openGacha(4, priceGacha1)
+            await pettyGacha.breedPetties(1, 2)
+            await network.provider.send("evm_increaseTime", [oneDay * 1 - 1])
+            await expect(pettyGacha.claimsPetty(1))
+            .to
+            .be
+            .revertedWith("PettyGacha: breed time hasn't been exceeded")
+        })
+        it("should claim correctly rank 1", async function () {
+            await pettyGacha.setApprovalForAll(pettyGacha.address, true)
+            await pettyGacha.openGacha(4, priceGacha1)
+            await pettyGacha.openGacha(4, priceGacha1)
+            await pettyGacha.breedPetties(1, 2)
+            await network.provider.send("evm_increaseTime", [oneDay * 1 + 1])
+            await pettyGacha.claimsPetty(1)
             const petty3 = await pettyGacha._tokenIdToPetty(3)
-            expect(petty1.rank).to.be.equal(0)
-            expect(petty2.rank).to.be.equal(0)
             expect(petty3.rank).to.be.equal(2)
+            let breedInfo = await pettyGacha._idToBreedInfo(1)
+            expect(breedInfo.startTime).to.be.equal(0)
+            expect(breedInfo.breedTime).to.be.equal(0)
+            expect(breedInfo.owner).to.be.equal(address0)
+            expect(breedInfo.matron).to.be.equal(0)
+            expect(breedInfo.sire).to.be.equal(0)
+            expect(breedInfo.newRank).to.be.equal(0)
+        })
+        it("should revert if not exceed breed time rank 2", async function () {
+            await pettyGacha.setApprovalForAll(pettyGacha.address, true)
+            await pettyGacha.openGacha(5, priceGacha1)
+            await pettyGacha.openGacha(5, priceGacha1)
+            await pettyGacha.breedPetties(1, 2)
+            await network.provider.send("evm_increaseTime", [oneDay * 2 - 1])
+            await expect(pettyGacha.claimsPetty(1))
+            .to
+            .be
+            .revertedWith("PettyGacha: breed time hasn't been exceeded")
+        })
+        it("should claim correctly rank 2", async function () {
+            await pettyGacha.setApprovalForAll(pettyGacha.address, true)
+            await pettyGacha.openGacha(5, priceGacha1)
+            await pettyGacha.openGacha(5, priceGacha1)
+            await pettyGacha.breedPetties(1, 2)
+            await network.provider.send("evm_increaseTime", [oneDay * 2 + 1])
+            await pettyGacha.claimsPetty(1)
+            const petty3 = await pettyGacha._tokenIdToPetty(3)
+            expect(petty3.rank).to.be.equal(3)
+            let breedInfo = await pettyGacha._idToBreedInfo(1)
+            expect(breedInfo.startTime).to.be.equal(0)
+            expect(breedInfo.breedTime).to.be.equal(0)
+            expect(breedInfo.owner).to.be.equal(address0)
+            expect(breedInfo.matron).to.be.equal(0)
+            expect(breedInfo.sire).to.be.equal(0)
+            expect(breedInfo.newRank).to.be.equal(0)
+
         })
     })
 })
