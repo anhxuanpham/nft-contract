@@ -6,7 +6,7 @@ describe("Petty NFT", function () {
     let pettyGacha
     let gold
     let address0 = "0x0000000000000000000000000000000000000000"
-    let defaulBalance = ethers.utils.parseEther("1000000")
+    let defaulBalance = ethers.utils.parseEther("1000000000")
     let priceGacha1 = ethers.utils.parseEther("100")
     let priceGacha2 = ethers.utils.parseEther("200")
     let priceGacha3 = ethers.utils.parseEther("300")
